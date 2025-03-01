@@ -65,8 +65,7 @@ async def on_message(msg):
                         await msg.channel.send(f"🎵 재생목록에 추가됨: {info['title']}")
                     else:
                         # 재생 중이 아니면 바로 재생
-                        voice_client.play(audio, 
-                                        after=lambda e: bot.loop.create_task(play_next(msg.guild, msg.channel)))
+                        voice_client.play(audio, after=lambda e: bot.loop.create_task(play_next(msg.guild, msg.channel)))
                         await msg.channel.send(f"🎵 지금 재생 중: {info['title']}")
                         
             except Exception as e:
