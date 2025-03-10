@@ -4,7 +4,8 @@ const { DisTube } = require("distube");
 const { YouTubePlugin } = require("@distube/youtube");
 const ytSearch = require("yt-search");
 const { token, channel_id } = require("./config.json");
-const { waitEmbed, row } = require("./index2");
+const { waitEmbed, row } = require("./baseUI");
+const { createMusicEmbed, buttons } = require("./reservationUI");
 
 //클라이언트 객체 생성 (Guilds관련, 메시지관련 인텐트 추가)
 const client = new Client({
@@ -20,6 +21,8 @@ const distube = new DisTube(client, {
   plugins: [new YouTubePlugin()],
 });
 
+var baseMessage = null;
+
 //봇이 준비됐을때 한번만(once) 표시할 메시지
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -30,7 +33,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 
   // 2) 채널에 메시지 전송하기
-  const baseMessage = await channel.send({
+  baseMessage = await channel.send({
     embeds: [waitEmbed],
     components: [row],
   });
@@ -46,7 +49,7 @@ distube.on("finishSong", (queue) => {
 // 메시지가 생성되면
 client.on("messageCreate", async (msg) => {
   //노래채널에 입력했을때
-  if (msg.channel.id == channel_id) {
+  if (msg.channel.id == channel_id && !msg.author.bot) {
     msg.delete();
     if (!msg.member.voice.channel) {
       return msg.reply("먼저 음성 채널에 접속해주세요!");
@@ -62,7 +65,7 @@ client.on("messageCreate", async (msg) => {
         thumbnail: Song.all[0].thumbnail,
       };
 
-      //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게
+      //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게 
       var previewSongs = [];
       for (let i = 1; i < 6; i++) {
         previewSongs.push({
@@ -72,13 +75,21 @@ client.on("messageCreate", async (msg) => {
         });
       }
 
+      const songTitle = mainSong.title;
+      const requester = {
+        username: msg.author.globalName,
+        avatarURL: msg.author.avatarURL(),
+      };
+      const albumImage = mainSong.thumbnail;
+      baseMessage.edit({
+        embeds: [createMusicEmbed(songTitle,requester,albumImage)],
+        components: [buttons],
+      });
+      
       distube.play(msg.member.voice.channel, mainSong.url, {
         textChannel: msg.channel,
         member: msg.member,
       });
-
-      console.log(mainSong);
-      console.log(previewSongs);
     }
   }
 });
