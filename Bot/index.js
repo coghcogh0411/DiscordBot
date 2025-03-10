@@ -1,8 +1,10 @@
 //주요 클래스 가져오기
 const { Client, Events, GatewayIntentBits } = require("discord.js");
 const { DisTube } = require("distube");
+const { YouTubePlugin } = require("@distube/youtube");
 const ytSearch = require("yt-search");
 const { token, channel_id } = require("./config.json");
+const { waitEmbed, row } = require("./index2");
 
 //클라이언트 객체 생성 (Guilds관련, 메시지관련 인텐트 추가)
 const client = new Client({
@@ -15,19 +17,37 @@ const client = new Client({
 });
 
 const distube = new DisTube(client, {
-    ffmpeg: "C:/ffmpeg/bin/ffmpeg.exe",
-    emitNewSongOnly: true,
+  plugins: [new YouTubePlugin()],
 });
 
 //봇이 준비됐을때 한번만(once) 표시할 메시지
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  const channel = client.channels.cache.get(channel_id);
+  if (!channel) {
+    console.log("해당 채널을 찾을 수 없습니다.");
+    return;
+  }
+
+  // 2) 채널에 메시지 전송하기
+  const baseMessage = await channel.send({
+    embeds: [waitEmbed],
+    components: [row],
+  });
+});
+
+distube.on("finishSong", (queue) => {
+  baseMessage.edit({
+    embeds: [waitEmbed],
+    components: [row],
+  });
 });
 
 // 메시지가 생성되면
 client.on("messageCreate", async (msg) => {
   //노래채널에 입력했을때
   if (msg.channel.id == channel_id) {
+    msg.delete();
     if (!msg.member.voice.channel) {
       return msg.reply("먼저 음성 채널에 접속해주세요!");
     }
@@ -51,6 +71,7 @@ client.on("messageCreate", async (msg) => {
           thumbnail: Song.all[i].thumbnail,
         });
       }
+
       distube.play(msg.member.voice.channel, mainSong.url, {
         textChannel: msg.channel,
         member: msg.member,
