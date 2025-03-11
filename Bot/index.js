@@ -22,6 +22,8 @@ const distube = new DisTube(client, {
 });
 
 var baseMessage = null;
+var isPlaying = false;
+var playList = [];
 
 //봇이 준비됐을때 한번만(once) 표시할 메시지
 client.once(Events.ClientReady, async (readyClient) => {
@@ -65,7 +67,7 @@ client.on("messageCreate", async (msg) => {
         thumbnail: Song.all[0].thumbnail,
       };
 
-      //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게 
+      //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게
       var previewSongs = [];
       for (let i = 1; i < 6; i++) {
         previewSongs.push({
@@ -80,16 +82,25 @@ client.on("messageCreate", async (msg) => {
         username: msg.author.globalName,
         avatarURL: msg.author.avatarURL(),
       };
-      const albumImage = mainSong.thumbnail;
-      baseMessage.edit({
-        embeds: [createMusicEmbed(songTitle,requester,albumImage)],
-        components: [buttons],
-      });
-      
-      distube.play(msg.member.voice.channel, mainSong.url, {
-        textChannel: msg.channel,
-        member: msg.member,
-      });
+      //노래 안틀어져있으면 노래틀기, 아니면 playList에 추가
+      if (!isPlaying) {
+        //노래 틀면 UI수정
+        const albumImage = mainSong.thumbnail;
+        baseMessage.edit({
+          embeds: [createMusicEmbed(songTitle, requester, albumImage)],
+          components: [buttons],
+        });
+
+        distube.play(msg.member.voice.channel, mainSong.url, {
+          textChannel: msg.channel,
+          member: msg.member,
+        });
+      } else {
+        playList.push({
+          mainSong: mainSong,
+          user: requester
+        });
+      }
     }
   }
 });
