@@ -15,13 +15,13 @@ function createMusicEmbed(
     .setColor(0x2f3136)
     .setTitle("음악 재생 중")
     .setDescription(
-      `**${songTitle}** 🔊 [대화방]\n\n`
+      `**${songTitle}**\n\n`
     )
-    .setThumbnail(requester.avatarURL)
+    .setThumbnail(requester.user.displayAvatarURL())
     .setImage(albumImage)
     .setFooter({
-      text: `신청자: ${requester.username}`,
-      iconURL: requester.avatarURL,
+      text: `신청자: ${requester.user.globalName}`,
+      iconURL: requester.user.displayAvatarURL(),
     })
     .setTimestamp();
 }

@@ -21,6 +21,7 @@ const distube = new DisTube(client, {
   plugins: [new YouTubePlugin()],
 });
 
+const requesterMap = new Map();
 var baseMessage = null;
 
 //봇이 준비됐을때 한번만(once) 표시할 메시지
@@ -56,6 +57,7 @@ client.on("messageCreate", async (msg) => {
         title: Song.all[0].title,
         url: Song.all[0].url,
         thumbnail: Song.all[0].thumbnail,
+        requester: msg.member,
       };
 
       //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게
@@ -72,25 +74,58 @@ client.on("messageCreate", async (msg) => {
         member: msg.member,
         textChannel: msg.channel,
       });
+
+      //
+      const queue = distube.getQueue(msg);
+      const guildId = msg.guild.id;
+      if (!requesterMap.has(guildId)) {
+        requesterMap.set(guildId, new Map());
+      }
+      const guildMap = requesterMap.get(guildId);
+      const addedSong = queue.songs[queue.songs.length - 1];
+      guildMap.set(addedSong.id, msg.member);
+      console.log(guildMap);
     }
   }
 });
 
 distube.on("playSong", (queue, song) => {
-  const songTitle = song.name;
-  const albumImage = song.thumbnail;
-  const requester = queue;
-  console.log(songTitle);
-  if (requester) {
+  setTimeout(() => {
+    const songTitle = song.name;
+    const albumImage = song.thumbnail;
+    // 현재 서버의 guild id를 구합니다.
+    const guildId = queue.textChannel.guild.id;
+    console.log(`guildID:${guildId}`);
+    const guildMap = requesterMap.get(guildId);
+    console.log(`guildMap:`);
+    console.log(guildMap);
+    const requester = guildMap.get(song.id);
+
+    console.log(`Now playing: ${songTitle}`);
+    //   console.log(requester.globalName);
+    //   console.log(requester.avartarURL);
     console.log(requester);
-  } else {
-    console.log("Requester 정보가 없습니다.");
-  }
-  //
-  //   baseMessage.edit({
-  //     embeds: [createMusicEmbed(songTitle, requester, albumImage)],
-  //     components: [buttons],
-  //   });
+    if (requester) {
+      // baseMessage에 재생중인 노래 정보를 담은 embed 업데이트
+      baseMessage.edit({
+        embeds: [createMusicEmbed(songTitle, requester, albumImage)],
+        components: [buttons],
+      });
+      guildMap.delete(song.id);
+    } else {
+      console.log("Requester 정보가 없습니다.");
+      baseMessage.edit({
+        embeds: [
+          createMusicEmbed(
+            songTitle,
+            { user: { username: "Unknown", displayAvatarURL: () => "" } },
+            albumImage
+          ),
+        ],
+        components: [buttons],
+      });
+    }
+  }, 1000);
 });
 
 //노래가끝나면 다시 기본메시지로
