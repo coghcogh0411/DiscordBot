@@ -9,7 +9,7 @@ const {
   // 임베드 생성 예시
   const waitEmbed = new EmbedBuilder()
     .setColor(0x2F3136)  // 디스코드 Embed 느낌의 진한 회색
-    .setTitle("알로항 - 음악채널")
+    .setTitle("구파봇 - 음악채널")
     .setDescription(
       "99.99%의 업타임 보장\n" +
       "봇 재시작 사이에 음악이 끊기지 않으며, 음질과 접적력을 위해 " +
