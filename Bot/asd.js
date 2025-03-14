@@ -89,6 +89,7 @@ client.on("messageCreate", async (msg) => {
   }
 });
 
+//노래 재생 될 때
 distube.on("playSong", (queue, song) => {
   setTimeout(() => {
     const songTitle = song.name;
@@ -127,6 +128,11 @@ distube.on("playSong", (queue, song) => {
     }
   }, 1000);
 });
+
+//버튼 클릭하면 버튼기능 실행
+client.on("interactionCreate", async (interaction) =>{
+  console.log(interaction);
+})
 
 //노래가끝나면 다시 기본메시지로
 distube.on("finish", (queue) => {
