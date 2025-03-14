@@ -131,8 +131,21 @@ distube.on("playSong", (queue, song) => {
 
 //버튼 클릭하면 버튼기능 실행
 client.on("interactionCreate", async (interaction) =>{
-  //interaction에는 크게 채널id, 길드id, 유저정보, 누른버튼 id 있음
+  //버튼을 누른게아니면 동작안함
+  if(!interaction.isButton()){
+    return;
+  }
+  //interaction에는 channelID(버튼누른 채널 id), guildID(버튼누른 서버 ID), user객체, member객체가 있음
+  // 가져와야 할 것
+  // 1. guildID 어느서버의 봇을 컨트롤 할 지 정해야하므로 필요함
+  // channelID, user객체, member객체는 필요한가?
+  // 예를 들면 멈춤버튼을 누르면 guildID가져와서 그서버에 gupa봇 distube.stop하면 되는거아닌가?
+  // interaction에 너무 많은 정보가 담겨있는데 사용자가 많아지면 부담이 커지지않나?
+  // guildID만 가져오는 식으로하면 부담이 줄어드나? 
+  // ex)interaction.guildID
+  // 근데 이렇게하면 보여주는건 guildID만 보여주긴 하겠지만 결국 interaction전부 가져오는건 똑같지 않나?
   console.log(interaction);
+
 })
 
 //노래가끝나면 다시 기본메시지로
