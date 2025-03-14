@@ -131,6 +131,7 @@ distube.on("playSong", (queue, song) => {
 
 //버튼 클릭하면 버튼기능 실행
 client.on("interactionCreate", async (interaction) =>{
+  //interaction에는 크게 채널id, 길드id, 유저정보, 누른버튼 id 있음
   console.log(interaction);
 })
 
