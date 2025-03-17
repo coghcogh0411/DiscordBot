@@ -52,31 +52,32 @@ client.on("messageCreate", async (msg) => {
     //메시지 보낸사람이 음성채널에 들어와있는지 확인
     if (msg.member.voice.channel) {
       //메시지 youtube에 검색해서 url,제목 가져옴
-      Song = await ytSearch(msg.content);
-      var mainSong = {
-        title: Song.all[0].title,
-        url: Song.all[0].url,
-        thumbnail: Song.all[0].thumbnail,
-        requester: msg.member,
-      };
+      // Song = await ytSearch(msg.content);
+      // var mainSong = {
+      //   title: Song.all[0].title,
+      //   url: Song.all[0].url,
+      //   thumbnail: Song.all[0].thumbnail,
+      //   requester: msg.member,
+      // };
 
-      //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게
-      var previewSongs = [];
-      for (let i = 1; i < 6; i++) {
-        previewSongs.push({
-          title: Song.all[i].title,
-          url: Song.all[0].url,
-          thumbnail: Song.all[i].thumbnail,
-        });
-      }
+      // //이상한거 있을수 있으니 여러개 더 가져와서 고를수있게
+      // var previewSongs = [];
+      // for (let i = 1; i < 6; i++) {
+      //   previewSongs.push({
+      //     title: Song.all[i].title,
+      //     url: Song.all[0].url,
+      //     thumbnail: Song.all[i].thumbnail,
+      //   });
+      // }
 
       await distube.play(msg.member.voice.channel, msg.content, {
         member: msg.member,
         textChannel: msg.channel,
       });
 
-      //
       const queue = distube.getQueue(msg);
+      //autoplay되는거같긴한데 지금 정보가 제대로 안 넘어오는 듯 제목까지는 가져옴 101줄부터 문제
+      queue.toggleAutoplay();
       const guildId = msg.guild.id;
       if (!requesterMap.has(guildId)) {
         requesterMap.set(guildId, new Map());
@@ -97,6 +98,7 @@ distube.on("playSong", (queue, song) => {
     // 현재 서버의 guild id를 구합니다.
     const guildId = queue.textChannel.guild.id;
     console.log(`guildID:${guildId}`);
+    //여기부터 제대로된 정보가 안들어옴
     const guildMap = requesterMap.get(guildId);
     console.log(`guildMap:`);
     console.log(guildMap);
@@ -135,6 +137,31 @@ client.on("interactionCreate", async (interaction) =>{
   if(!interaction.isButton()){
     return;
   }
+  switch(interaction.customId){
+    case "play":
+      await distube.resume(interaction.guildId);
+      break;
+    case "stop":
+      await distube.stop(interaction.guildId);
+      baseMessage.edit({
+        embeds: [waitEmbed],
+        components: [row],
+      });
+      break;
+    case "skip":
+      await distube.skip(interaction.guildId);
+      break;
+    case "pause":
+      await distube.pause(interaction.guildId);
+      break;
+    default:
+      await distube.stop(interaction.guildId);
+      baseMessage.edit({
+        embeds: [waitEmbed],
+        components: [row],
+      });
+      break;
+  } 
   //interaction에는 channelID(버튼누른 채널 id), guildID(버튼누른 서버 ID), user객체, member객체가 있음
   // 가져와야 할 것
   // 1. guildID 어느서버의 봇을 컨트롤 할 지 정해야하므로 필요함
@@ -144,17 +171,20 @@ client.on("interactionCreate", async (interaction) =>{
   // guildID만 가져오는 식으로하면 부담이 줄어드나? 
   // ex)interaction.guildID
   // 근데 이렇게하면 보여주는건 guildID만 보여주긴 하겠지만 결국 interaction전부 가져오는건 똑같지 않나?
-  console.log(interaction);
+
 
 })
 
 //노래가끝나면 다시 기본메시지로
 distube.on("finish", (queue) => {
+  console.log(queue);
+});
+
+distube.on("disconnect", (queue) => {
   baseMessage.edit({
     embeds: [waitEmbed],
     components: [row],
   });
 });
-
 // 5. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token);
