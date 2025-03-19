@@ -76,7 +76,6 @@ client.on("messageCreate", async (msg) => {
       });
 
       const queue = distube.getQueue(msg);
-      //autoplay되는거같긴한데 지금 정보가 제대로 안 넘어오는 듯 제목까지는 가져옴 101줄부터 문제
       queue.toggleAutoplay();
       const guildId = msg.guild.id;
       if (!requesterMap.has(guildId)) {
