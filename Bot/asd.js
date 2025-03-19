@@ -86,7 +86,7 @@ client.on("messageCreate", async (msg) => {
       const addedSong = queue.songs[queue.songs.length - 1];
       guildMap.set(addedSong.id, msg.member);
       console.log(guildMap);
-    }
+    } 
   }
 });
 
@@ -117,11 +117,13 @@ distube.on("playSong", (queue, song) => {
       guildMap.delete(song.id);
     } else {
       console.log("Requester 정보가 없습니다.");
+      const requester = client;
+      console.log(requester);
       baseMessage.edit({
         embeds: [
           createMusicEmbed(
             songTitle,
-            { user: { username: "Unknown", displayAvatarURL: () => "" } },
+            requester,
             albumImage
           ),
         ],

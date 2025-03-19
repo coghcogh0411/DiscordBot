@@ -4,6 +4,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Client,
 } = require("discord.js");
 
 function createMusicEmbed(
